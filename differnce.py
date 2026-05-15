@@ -2,7 +2,7 @@
 import numpy as np
 import cv2
 import math
-from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import structural_similarity as ssim_computate
 
 def ssim(compressed:str, original:str) ->float:
 
@@ -13,7 +13,7 @@ def ssim(compressed:str, original:str) ->float:
     ssim_total = 0
 
     for i in range(seq_len):
-        ssim_total += ssim(orig[i], comp[i], data_range = 255)
+        ssim_total += ssim_computate(orig[i], comp[i], data_range = 255)
 
 
     return ssim_total/seq_len

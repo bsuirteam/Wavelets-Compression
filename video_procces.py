@@ -7,6 +7,7 @@ import numpy as np
 
 import pywt
 import pywt.data
+import differnce
 
 
 
@@ -255,10 +256,14 @@ def wavelet_sampling(inp, frame_to_read, wavelet_type, quantum_rate, framerate =
 
 
 
-
 path_to_pre = "/home/udainoko/Documents/NVDIA_PET_PROJECT/Radiohead - Street Spirit (Fade Out).mp4"
-path_to_post = "sampled"
+# path_to_post = "sampled"
 
-#wavelet_sampling(path_to_pre, 0, 'bior3.7', 10)
-#cunk_wavelet_sampling(path_to_pre, "sample_step_1000.mp4", 'haar', 24, 10000)
-cunk_wavelet_compress(path_to_pre, 'bior3.7', 1, 24, 1000)
+# #wavelet_sampling(path_to_pre, 0, 'bior3.7', 10)
+cunk_wavelet_sampling(path_to_pre, "sample_non_1000.mp4", 'haar', 5000, 24)
+# cunk_wavelet_compress(path_to_pre, 'bior3.7', 1, 24, 1000)
+
+
+
+out = differnce.ssim("/home/udainoko/Documents/NVDIA_PET_PROJECT/sample_non_1000.mp4","/home/udainoko/Documents/NVDIA_PET_PROJECT/sample_non.mp4" )
+print(out)
