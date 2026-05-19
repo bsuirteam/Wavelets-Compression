@@ -8,7 +8,9 @@ import numpy as np
 import pywt
 import pywt.data
 import differnce
-
+import moviepy
+import time
+import os
 
 
 def d_wavelet_transform(array, wavelet):
@@ -17,7 +19,13 @@ def d_wavelet_transform(array, wavelet):
 
 def quantum_tuple(matrix, step):
 
+    if step == 1:
+        return matrix
 
+    if step == 0:
+        quantized = matrix * 0
+        return quantized
+    
     quantized = np.round(matrix / step) * step
 
 
@@ -26,6 +34,17 @@ def quantum_tuple(matrix, step):
             
 def inverse_discrete_wavelet_transform(coeffs :dict,  wavelet:str):
     return pywt.idwtn(coeffs, wavelet)
+
+
+
+
+def check_video_fps(file: str):
+    cam = cv2.VideoCapture(file)
+    fps = cam.get(cv2.CAP_PROP_FPS)
+    return fps
+
+
+
     
 def video_reader(file:str, n :int ):
     vidcap = cv2.VideoCapture(file)
@@ -72,7 +91,7 @@ def cunk_wavelet_sampling(inp, outfile, wavelet_type, quantum_rate, framerate = 
 
 
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+    fourcc = cv2.VideoWriter_fourcc(*'XVID') 
     out = None
 
     while True:
@@ -139,7 +158,7 @@ def cunk_wavelet_compress(inp, wavelet_type, quantum_rate, framerate = 30, chunk
 
 
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+    fourcc = cv2.VideoWriter_fourcc(*'XVID') 
     out = None
 
     while True:
@@ -175,7 +194,7 @@ def cunk_wavelet_compress(inp, wavelet_type, quantum_rate, framerate = 30, chunk
 
         if out is None:
             n_frames, height, width = normalized.shape
-            out = cv2.VideoWriter("compressed.mp4", fourcc, framerate, (width, height), isColor=False)
+            out = cv2.VideoWriter("compressed.avi", fourcc, framerate, (width, height), isColor=False)
 
    
         for frame in normalized:
@@ -205,7 +224,7 @@ def bytes_to_video(frames_array, output_path, fps=30):
     else:
         normalized = ((frames_array - min_val) / (max_val - min_val) * 255).astype(np.uint8)
     n_frames, height, width = normalized.shape
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v") 
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height), isColor=False)
    
     for frame in normalized:
@@ -234,6 +253,13 @@ def wavelet_sampling(inp, frame_to_read, wavelet_type, quantum_rate, framerate =
 
 
 
+def convet_to_mp4(file: str):
+    clip = moviepy.VideoFileClip(file)
+    clip.write_videofile(file.split(".")[0] + ".mp4")
+
+
+
+
 
 
 # array = video_reader("/home/udainoko/Documents/NVDIA_PET_PROJECT/Radiohead - Street Spirit (Fade Out).mp4", 500)
@@ -256,14 +282,53 @@ def wavelet_sampling(inp, frame_to_read, wavelet_type, quantum_rate, framerate =
 
 
 
+
 path_to_pre = "/home/udainoko/Documents/NVDIA_PET_PROJECT/Radiohead - Street Spirit (Fade Out).mp4"
+
+fps = check_video_fps(path_to_pre)
 # path_to_post = "sampled"
 
 # #wavelet_sampling(path_to_pre, 0, 'bior3.7', 10)
-cunk_wavelet_sampling(path_to_pre, "sample_non_1000.mp4", 'haar', 5000, 24)
-# cunk_wavelet_compress(path_to_pre, 'bior3.7', 1, 24, 1000)
+
+
+operFileName = "bior_best_710"
 
 
 
-out = differnce.ssim("/home/udainoko/Documents/NVDIA_PET_PROJECT/sample_non_1000.mp4","/home/udainoko/Documents/NVDIA_PET_PROJECT/sample_non.mp4" )
-print(out)
+start_time = time.time()
+cunk_wavelet_sampling(path_to_pre, operFileName + ".avi", 'bior6.8',710, fps, 300)
+end_time = time.time()
+
+elapsed_time = end_time - start_time
+
+print(f"The task took {elapsed_time:.2f} seconds to complete.")
+# #cunk_wavelet_compress(path_to_pre, 'haar', 1, fps, fps)
+
+
+
+
+
+convet_to_mp4("/home/udainoko/Documents/NVDIA_PET_PROJECT/" + operFileName + ".avi")
+
+
+file_size_bytes = os.path.getsize("/home/udainoko/Documents/NVDIA_PET_PROJECT/" + operFileName + ".avi")
+file_size_ethalon = os.path.getsize("/home/udainoko/Documents/NVDIA_PET_PROJECT/ethalon.avi")
+
+
+file_size_bytes_mp4 = os.path.getsize("/home/udainoko/Documents/NVDIA_PET_PROJECT/" + operFileName + ".mp4")
+file_size_ethalon_mp4 = os.path.getsize("/home/udainoko/Documents/NVDIA_PET_PROJECT/ethalon.mp4")
+
+
+out_ssim = differnce.ssim("/home/udainoko/Documents/NVDIA_PET_PROJECT/" + operFileName + ".avi","/home/udainoko/Documents/NVDIA_PET_PROJECT/ethalon.avi" )
+out_psnr = differnce.psnr("/home/udainoko/Documents/NVDIA_PET_PROJECT/" + operFileName + ".avi","/home/udainoko/Documents/NVDIA_PET_PROJECT/ethalon.avi" )
+print("ssim_avi: ",out_ssim)
+print("psnr_avi: ",out_psnr)
+print("si_avi: ", file_size_bytes / file_size_ethalon)
+
+
+
+out_ssim = differnce.ssim("/home/udainoko/Documents/NVDIA_PET_PROJECT/" + operFileName + ".mp4","/home/udainoko/Documents/NVDIA_PET_PROJECT/ethalon.mp4" )
+out_psnr = differnce.psnr("/home/udainoko/Documents/NVDIA_PET_PROJECT/" + operFileName + ".mp4","/home/udainoko/Documents/NVDIA_PET_PROJECT/ethalon.mp4" )
+print("ssim_mp4: ",out_ssim)
+print("psnr_mp4: ",out_psnr)
+print("si_mp4: ", file_size_bytes_mp4 / file_size_ethalon_mp4)

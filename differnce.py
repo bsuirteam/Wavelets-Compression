@@ -19,19 +19,23 @@ def ssim(compressed:str, original:str) ->float:
     return ssim_total/seq_len
 
 
-def psnr(compressed, original) -> float:
+def psnr(compressed: str, original: str) -> float:
 
-    seq_len = min(len(compressed), len(original))
+
+    comp = get_imagaes(compressed)
+    orig = get_imagaes(original)
+
+    seq_len = min(len(comp), len(orig))
     total_psnr = 0
     
 
     for i in range(seq_len):
-        mse = np.mean((original[i] - compressed[i]) ** 2)
+        mse = np.mean((orig[i] - comp[i]) ** 2)
         if(mse == 0):  # MSE is zero means no noise is present in the signal .
             total_psnr += 100
             continue
         max_pixel = 255.0
-        total_psnr  += 20 * log10(max_pixel / sqrt(mse))
+        total_psnr  += 20 * math.log10(max_pixel / math.sqrt(mse))
 
 
     return total_psnr / seq_len
